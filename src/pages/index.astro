@@ -1,0 +1,108 @@
+---
+import Base from '../layouts/Base.astro';
+import { fetchProjects } from '../scripts/fetchProjects.mjs';
+import { useTranslations } from '../i18n/translations';
+import '../styles/global.css';
+
+const t = useTranslations('en');
+const data = await fetchProjects();
+const projects = data.projects;
+---
+
+<Base title="Rubén Martínez — Art Director" lang="en">
+  <!-- Nav -->
+  <nav class="nav">
+    <span class="nav-logo">RM</span>
+    <div class="nav-links">
+      <a href="#work">{t('nav.work')}</a>
+      <a href="mailto:rubenmartinezlopez&#64;gmail.com">{t('nav.contact')}</a>
+      <a href="/es/" class="nav-lang">ES</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-counter" aria-hidden="true">01</div>
+    <div>
+      <div class="hero-eyebrow">
+        <span class="dot"></span>
+        <span>{t('hero.available')}</span>
+      </div>
+      <h1 class="hero-name">
+        Rubén<br /><em>Martínez</em>
+      </h1>
+      <div class="hero-meta">
+        <p class="hero-role">{t('hero.role')}</p>
+        <span class="hero-scroll">Scroll</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Work -->
+  <section class="projects" id="work">
+    <div class="section-header">
+      <h2 class="section-title">{t('work.title')}</h2>
+      {data.fetchedAt && (
+        <span class="sync-badge">
+          {t('work.synced')} · {new Date(data.fetchedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+        </span>
+      )}
+    </div>
+
+    {projects.length > 0 ? (
+      <div class="projects-grid">
+        {projects.map((project, i) => (
+          <article class="project-card" style={`--i:${i}`}>
+            <a href={project.link} target="_blank" rel="noopener" class="card-link">
+              <div class="card-media">
+                {project.thumbnail ? (
+                  <img src={project.thumbnail} alt={project.title} loading="lazy" decoding="async" />
+                ) : (
+                  <div class="card-placeholder">
+                    <span>{String(i + 1).padStart(2, '0')}</span>
+                  </div>
+                )}
+                <div class="card-overlay">
+                  <span class="view-label">{t('work.view')} ↗</span>
+                </div>
+              </div>
+              <div class="card-info">
+                <p class="card-num">{String(i + 1).padStart(2, '0')}</p>
+                <h3 class="card-title">{project.title}</h3>
+              </div>
+            </a>
+          </article>
+        ))}
+      </div>
+    ) : (
+      <div style="padding: 5rem 0; text-align: center;">
+        <p style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.1em; margin-bottom: 1.5rem;">
+          {t('work.empty')}
+        </p>
+        <a href="https://www.behance.net/RubenMartinez" target="_blank" rel="noopener"
+           style="font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent);">
+          {t('work.behance')} →
+        </a>
+      </div>
+    )}
+  </section>
+
+  <!-- Footer / Contact -->
+  <footer class="footer">
+    <div class="footer-left">
+      <p>{t('contact.title')}</p>
+      <a
+        class="footer-email"
+        href="mailto:rubenmartinezlopez&#64;gmail.com"
+        aria-label="Email Rubén Martínez"
+      >
+        rubenmartinezlopez<wbr />&#64;gmail.com
+      </a>
+    </div>
+    <div class="footer-links">
+      <a href="https://www.behance.net/RubenMartinez" target="_blank" rel="noopener">Behance</a>
+      <a href="/cv.pdf" target="_blank" rel="noopener">{t('contact.cv')}</a>
+      <p class="footer-copy">© {new Date().getFullYear()} Rubén Martínez · {t('footer.built')}</p>
+    </div>
+  </footer>
+</Base>

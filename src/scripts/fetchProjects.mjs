@@ -136,3 +136,26 @@ export async function fetchProjects() {
   }
   return { fetchedAt: null, projects: [] };
 }
+
+/**
+ * Merge manually curated tags from src/data/tags.json into project list.
+ * Tags survive RSS refreshes because they live in a separate committed file.
+ */
+export async function fetchProjectsWithTags() {
+  const { projects, fetchedAt } = await fetchProjects();
+  
+  const tagsPath = join(__dirname, '../data/tags.json');
+  let tagMap = {};
+  try {
+    tagMap = JSON.parse(readFileSync(tagsPath, 'utf8'));
+  } catch(_) {
+    console.warn('[tags] Could not load tags.json');
+  }
+
+  const tagged = projects.map(p => ({
+    ...p,
+    tags: tagMap[p.title] || [],
+  }));
+
+  return { fetchedAt, projects: tagged };
+}

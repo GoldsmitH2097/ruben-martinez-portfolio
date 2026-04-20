@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { fetchProjects } from '../../scripts/fetchProjects.mjs';
+import { fetchProjectsWithTags as fetchProjects } from '../../scripts/fetchProjects.mjs';
 import { useTranslations } from '../../i18n/translations';
 import '../../styles/global.css';
 
@@ -40,11 +40,7 @@ const projects = data.projects;
   <section class="projects" id="work">
     <div class="section-header">
       <h2 class="section-title">{t('work.title')}</h2>
-      {data.fetchedAt && (
-        <span class="sync-badge">
-          {t('work.synced')} · {new Date(data.fetchedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
-        </span>
-      )}
+      
     </div>
 
     {projects.length > 0 ? (
@@ -65,8 +61,14 @@ const projects = data.projects;
                 </div>
               </div>
               <div class="card-info">
-                <p class="card-num">{String(i + 1).padStart(2, '0')}</p>
                 <h3 class="card-title">{project.title}</h3>
+                {project.tags && project.tags.length > 0 && (
+                  <div class="card-tags">
+                    {project.tags.map((tag) => (
+                      <span class={`tag tag--${tag}`}>{tag.replace(/-/g, ' ')}</span>
+                    ))}
+                  </div>
+                )}
               </div>
             </a>
           </article>

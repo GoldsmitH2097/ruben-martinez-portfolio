@@ -1,8 +1,3 @@
-/**
- * fetchProjects.mjs
- * Strategy: try direct RSS → allorigins proxy → rss2json → cache fallback
- */
-
 import fetch from 'node-fetch';
 import { XMLParser } from 'fast-xml-parser';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
@@ -11,17 +6,18 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CACHE_PATH = join(__dirname, '../../.cache/projects.json');
-const USERNAME = 'RubenMartinez';
-const BEHANCE_RSS = `https://www.behance.net/feeds/user?username=${USERNAME}`;
+const BEHANCE_RSS = 'https://www.behance.net/feeds/user?username=RubenMartinez';
 
 const SOURCES = [
-  // 1. Direct (works locally, sometimes blocked in CI)
-  { name: 'direct', url: BEHANCE_RSS, transform: body => body },
-  // 2. allorigins proxy (decodes base64 data URI)
+  {
+    name: 'direct',
+    url: BEHANCE_RSS,
+    transform: body => body,
+  },
   {
     name: 'allorigins',
     url: `https://api.allorigins.win/get?url=${encodeURIComponent(BEHANCE_RSS)}`,
-    transform: async body => {
+    transform: body => {
       const json = JSON.parse(body);
       if (!json.contents) throw new Error('No contents');
       if (json.contents.startsWith('data:')) {
@@ -30,18 +26,14 @@ const SOURCES = [
       return json.contents;
     },
   },
-  // 3. rss2json service
   {
     name: 'rss2json',
     url: `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(BEHANCE_RSS)}`,
-    transform: async body => {
-      const json = JSON.parse(body);
-      if (json.status !== 'ok') throw new Error('rss2json error');
-      // Convert to our format directly
-      return { _rss2json: json };
-    },
+    transform: body => ({ _rss2json: JSON.parse(body) }),
   },
 ];
+
+// ── helpers ────────────────────────────────────────────────────────────────
 
 function loadCache() {
   try {
@@ -56,45 +48,53 @@ function saveCache(data) {
   writeFileSync(CACHE_PATH, JSON.stringify(data, null, 2));
 }
 
+function decode(val) {
+  const str = typeof val === 'object' ? (val?.__cdata || '') : String(val || '');
+  return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#38;/g, '&');
+}
+
+function str(val, fallback = '') {
+  return decode(val) || fallback;
+}
+
 function extractThumbnail(item) {
   if (item['media:thumbnail']?.['@_url']) return item['media:thumbnail']['@_url'];
   if (item.enclosure?.['@_url']) return item.enclosure['@_url'];
   const rawHtml = item['content:encoded'] || item.description || '';
-  const html = typeof rawHtml === 'string' ? rawHtml : (rawHtml?.__cdata || String(rawHtml || ''));
+  const html = typeof rawHtml === 'object' ? (rawHtml?.__cdata || '') : String(rawHtml || '');
   const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
   return match ? match[1] : null;
 }
 
 function parseXML(xml) {
-  const parser = new XMLParser({
-    ignoreAttributes: false,
-    attributeNamePrefix: '@_',
-    cdataPropName: '__cdata',
-  });
+  const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_', cdataPropName: '__cdata' });
   const parsed = parser.parse(xml);
   const channel = parsed?.rss?.channel;
   if (!channel) throw new Error('No rss.channel');
   const raw = Array.isArray(channel.item) ? channel.item : [channel.item];
   return raw.filter(Boolean).map((item, i) => ({
     id: i,
-    title: String(item.title?.__cdata || item.title || `Project ${i + 1}`).trim(),
-    link: String(item.link || item.guid?.__cdata || item.guid || '#').trim(),
+    title: str(item.title, `Project ${i + 1}`).trim(),
+    link: str(item.link?.__cdata ? item.link : (item.link || item.guid), '#').trim(),
     pubDate: item.pubDate || null,
-    description: String(item.description?.__cdata || item.description || '').replace(/<[^>]+>/g, '').trim(),
+    description: str(item.description).replace(/<[^>]+>/g, '').trim(),
     thumbnail: extractThumbnail(item),
   })).filter(p => p.link !== '#');
 }
 
-function parseRss2json(json) {
-  return json.items.map((item, i) => ({
+function parseRss2json(data) {
+  if (data.status !== 'ok') throw new Error('rss2json error: ' + data.status);
+  return data.items.map((item, i) => ({
     id: i,
-    title: String(item.title || `Project ${i + 1}`).trim(),
-    link: String(item.link || '#').trim(),
+    title: str(item.title, `Project ${i + 1}`).trim(),
+    link: String(item.link || item.guid || '#').trim(),
     pubDate: item.pubDate || null,
     description: String(item.description || '').replace(/<[^>]+>/g, '').trim(),
     thumbnail: item.thumbnail || item.enclosure?.link || null,
   })).filter(p => p.link !== '#');
 }
+
+// ── main ───────────────────────────────────────────────────────────────────
 
 export async function fetchProjects() {
   for (const source of SOURCES) {
@@ -107,7 +107,7 @@ export async function fetchProjects() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const body = await res.text();
-      const transformed = await source.transform(body);
+      const transformed = source.transform(body);
 
       let projects;
       if (transformed?._rss2json) {
@@ -134,6 +134,5 @@ export async function fetchProjects() {
     console.log(`[RSS] Cache has ${cached.projects.length} project(s).`);
     return cached;
   }
-  console.warn('[RSS] No cache. Empty list.');
   return { fetchedAt: null, projects: [] };
 }

@@ -126,15 +126,29 @@ body::before {
 /* ── Hero ──────────────────────────────────────────────────── */
 /* Intentionally compact — work is the main event */
 .hero {
-  min-height: 52vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 0 var(--gutter) clamp(2.5rem, 4vw, 3.5rem);
-  padding-top: 7rem;
+  min-height: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 7rem var(--gutter) clamp(3rem, 5vw, 5rem);
   position: relative;
   overflow: hidden;
+  gap: 4rem;
 }
+
+/* Gradient mesh background */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 75% 30%, rgba(232,197,71,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 85% 70%, rgba(80,120,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero > * { position: relative; z-index: 1; }
 
 .hero-eyebrow {
   display: flex;
@@ -177,6 +191,13 @@ body::before {
   align-items: center;
   gap: 2.5rem;
   flex-wrap: wrap;
+}
+
+.hero-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 0.25rem;
 }
 
 .hero-role {
@@ -226,8 +247,8 @@ body::before {
   flex-wrap: wrap;
   gap: 1rem;
   border-top: 1px solid var(--border);
-  padding-top: 2.5rem;
-  margin-bottom: 2.5rem;
+  padding-top: 2rem;
+  margin-bottom: 2rem;
 }
 
 .section-title {
@@ -405,6 +426,10 @@ body::before {
 }
 
 /* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .hero { grid-template-columns: 1fr; min-height: auto; padding-top: 6rem; }
+  .hero-right { display: none; }
+}
 @media (max-width: 900px) {
   .projects-grid { grid-template-columns: repeat(2, 1fr); }
 }

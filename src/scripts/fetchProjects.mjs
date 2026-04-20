@@ -1,8 +1,6 @@
 /**
  * fetchProjects.mjs
- * Fetches the Behance RSS feed at build time via proxy fallbacks.
- * Behance blocks cloud datacenter IPs (GitHub Actions runners included),
- * so we try a chain of public CORS/proxy services before falling back to cache.
+ * Strategy: try direct RSS → allorigins proxy → rss2json → cache fallback
  */
 
 import fetch from 'node-fetch';
@@ -13,13 +11,36 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CACHE_PATH = join(__dirname, '../../.cache/projects.json');
-const RSS_URL = 'https://www.behance.net/feeds/user?username=RubenMartinez';
+const USERNAME = 'RubenMartinez';
+const BEHANCE_RSS = `https://www.behance.net/feeds/user?username=${USERNAME}`;
 
-// Proxy chain — tried in order until one works
-const PROXY_URLS = [
-  RSS_URL, // direct first (works locally)
-  `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_URL)}`,
-  `https://corsproxy.io/?${encodeURIComponent(RSS_URL)}`,
+const SOURCES = [
+  // 1. Direct (works locally, sometimes blocked in CI)
+  { name: 'direct', url: BEHANCE_RSS, transform: body => body },
+  // 2. allorigins proxy (decodes base64 data URI)
+  {
+    name: 'allorigins',
+    url: `https://api.allorigins.win/get?url=${encodeURIComponent(BEHANCE_RSS)}`,
+    transform: async body => {
+      const json = JSON.parse(body);
+      if (!json.contents) throw new Error('No contents');
+      if (json.contents.startsWith('data:')) {
+        return Buffer.from(json.contents.split(',')[1], 'base64').toString('utf8');
+      }
+      return json.contents;
+    },
+  },
+  // 3. rss2json service
+  {
+    name: 'rss2json',
+    url: `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(BEHANCE_RSS)}`,
+    transform: async body => {
+      const json = JSON.parse(body);
+      if (json.status !== 'ok') throw new Error('rss2json error');
+      // Convert to our format directly
+      return { _rss2json: json };
+    },
+  },
 ];
 
 function loadCache() {
@@ -38,83 +59,81 @@ function saveCache(data) {
 function extractThumbnail(item) {
   if (item['media:thumbnail']?.['@_url']) return item['media:thumbnail']['@_url'];
   if (item.enclosure?.['@_url']) return item.enclosure['@_url'];
-  const raw = item['content:encoded'] || item.description || '';
-  const html = typeof raw === 'string' ? raw : (raw?.__cdata || String(raw || ''));
+  const rawHtml = item['content:encoded'] || item.description || '';
+  const html = typeof rawHtml === 'string' ? rawHtml : (rawHtml?.__cdata || String(rawHtml || ''));
   const match = html.match(/<img[^>]+src=["']([^"']+)["']/i);
   return match ? match[1] : null;
 }
 
-async function tryFetch(url) {
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; portfolio-bot/1.0)',
-      Accept: 'application/rss+xml, application/xml, text/xml, */*',
-    },
-    timeout: 12000,
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const text = await res.text();
-  if (!text.includes('<rss') && !text.includes('<feed')) throw new Error('Response is not RSS/XML');
-  return text;
-}
-
-export async function fetchProjects() {
+function parseXML(xml) {
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
     cdataPropName: '__cdata',
   });
+  const parsed = parser.parse(xml);
+  const channel = parsed?.rss?.channel;
+  if (!channel) throw new Error('No rss.channel');
+  const raw = Array.isArray(channel.item) ? channel.item : [channel.item];
+  return raw.filter(Boolean).map((item, i) => ({
+    id: i,
+    title: String(item.title?.__cdata || item.title || `Project ${i + 1}`).trim(),
+    link: String(item.link || item.guid?.__cdata || item.guid || '#').trim(),
+    pubDate: item.pubDate || null,
+    description: String(item.description?.__cdata || item.description || '').replace(/<[^>]+>/g, '').trim(),
+    thumbnail: extractThumbnail(item),
+  })).filter(p => p.link !== '#');
+}
 
-  let xml = null;
+function parseRss2json(json) {
+  return json.items.map((item, i) => ({
+    id: i,
+    title: String(item.title || `Project ${i + 1}`).trim(),
+    link: String(item.link || '#').trim(),
+    pubDate: item.pubDate || null,
+    description: String(item.description || '').replace(/<[^>]+>/g, '').trim(),
+    thumbnail: item.thumbnail || item.enclosure?.link || null,
+  })).filter(p => p.link !== '#');
+}
 
-  for (const url of PROXY_URLS) {
+export async function fetchProjects() {
+  for (const source of SOURCES) {
     try {
-      console.log(`[RSS] Trying: ${url.slice(0, 60)}…`);
-      xml = await tryFetch(url);
-      console.log('[RSS] Success.');
-      break;
-    } catch (err) {
-      console.warn(`[RSS] Failed (${err.message}), trying next…`);
-    }
-  }
+      console.log(`[RSS] Trying ${source.name}…`);
+      const res = await fetch(source.url, {
+        timeout: 15000,
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; portfolio-bot/1.0)' },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-  if (xml) {
-    try {
-      const parsed = parser.parse(xml);
-      const channel = parsed?.rss?.channel;
-      if (!channel) throw new Error('No rss.channel');
+      const body = await res.text();
+      const transformed = await source.transform(body);
 
-      const raw = Array.isArray(channel.item) ? channel.item : [channel.item];
-      const projects = raw
-        .filter(Boolean)
-        .map((item, i) => ({
-          id: i,
-          title: String(item.title?.__cdata || item.title || `Project ${i + 1}`).trim(),
-          link: String(item.link || item.guid?.__cdata || item.guid || '#').trim(),
-          pubDate: item.pubDate || null,
-          description: String(
-            item.description?.__cdata || item.description || ''
-          ).replace(/<[^>]+>/g, '').trim(),
-          thumbnail: extractThumbnail(item),
-        }))
-        .filter(p => p.link !== '#');
+      let projects;
+      if (transformed?._rss2json) {
+        projects = parseRss2json(transformed._rss2json);
+      } else {
+        projects = parseXML(transformed);
+      }
 
-      console.log(`[RSS] Parsed ${projects.length} project(s).`);
+      if (!projects.length) throw new Error('No projects parsed');
+
+      console.log(`[RSS] ✓ ${source.name} → ${projects.length} project(s)`);
       const payload = { fetchedAt: new Date().toISOString(), projects };
       saveCache(payload);
       return payload;
+
     } catch (err) {
-      console.warn(`[RSS] Parse failed: ${err.message}`);
+      console.warn(`[RSS] ${source.name} failed: ${err.message}`);
     }
   }
 
-  console.warn('[RSS] All sources failed — falling back to cache.');
+  console.warn('[RSS] All sources failed — using cache.');
   const cached = loadCache();
   if (cached) {
-    console.log(`[RSS] Loaded ${cached.projects.length} cached project(s).`);
+    console.log(`[RSS] Cache has ${cached.projects.length} project(s).`);
     return cached;
   }
-
-  console.warn('[RSS] No cache. Returning empty list.');
+  console.warn('[RSS] No cache. Empty list.');
   return { fetchedAt: null, projects: [] };
 }

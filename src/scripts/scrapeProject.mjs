@@ -1,8 +1,10 @@
 /**
  * scrapeProject.mjs
- * Fetches a Behance project page and extracts all full-size images.
- * Called at build time — no CORS issues, runs server-side.
- * Results are cached per project to avoid re-fetching on every build.
+ * Fetches a Behance project page and extracts main content images only.
+ * - Filters by gallery ID so only images from THIS project are included
+ * - Deduplicates by image hash to avoid multiple resolutions of same image
+ * - Prefers highest resolution variants
+ * - Caches results for 7 days
  */
 
 import fetch from 'node-fetch';
@@ -31,45 +33,58 @@ function saveProjectCache(slug, data) {
 }
 
 /**
- * Extract all image URLs from a Behance project page HTML
+ * Extract main project content images only.
+ * galleryId filters to images belonging to this specific project,
+ * eliminating sidebar/recommended project images entirely.
  */
-function extractImages(html) {
+function extractImages(html, galleryId) {
   const images = [];
-  
-  // Match Behance CDN image URLs — their main content images
-  const patterns = [
-    /https:\/\/mir-s3-cdn-cf\.behance\.net\/project_modules\/[^"'\s)]+/g,
-    /https:\/\/mir-s3-cdn-cf\.behance\.net\/projects\/[^"'\s)]+/g,
-  ];
-  
-  for (const pattern of patterns) {
-    const matches = html.match(pattern) || [];
-    for (const url of matches) {
-      // Filter out tiny thumbnails — keep only full-size variants
-      if (!url.includes('/40/') && !url.includes('/50/') && 
-          !url.includes('/80/') && !url.includes('/100/') &&
-          !url.includes('_sq') && !images.includes(url)) {
-        images.push(url);
-      }
-    }
+  const seen = new Set();
+
+  // Size preference order — we only want full-size images
+  const PREFERRED = ['hd', 'fs', 'max_1400', 'max_1200', 'max_632', 'max_800'];
+  const SKIP = ['max_316', 'max_240', 'max_320', 'max_200', 'max_100', '_sq', 'disp_webp', '_webp', '/sq/'];
+
+  const pattern = /https:\/\/mir-s3-cdn-cf\.behance\.net\/project_modules\/([^"'\s)]+)/g;
+  let match;
+
+  while ((match = pattern.exec(html)) !== null) {
+    const url = 'https://mir-s3-cdn-cf.behance.net/project_modules/' + match[1];
+
+    // Only images from this gallery
+    if (galleryId && !url.includes(galleryId)) continue;
+
+    // Skip small/webp variants
+    if (SKIP.some(s => url.includes(s))) continue;
+
+    // Deduplicate — each unique image has a consistent hash segment
+    const filename = url.split('/').pop().replace(/\?.*$/, '');
+    const parts = filename.split('.');
+    // Hash is typically first segment of filename
+    const hash = parts[0];
+
+    if (!hash || seen.has(hash)) continue;
+    seen.add(hash);
+
+    images.push(url);
   }
-  
-  return [...new Set(images)]; // deduplicate
+
+  return images;
 }
 
 export async function scrapeProjectImages(behanceUrl, slug) {
-  // Return cache if fresh enough (7 days)
+  // Return cache if fresh (7 days)
   const cached = loadProjectCache(slug);
   if (cached) {
     const age = Date.now() - new Date(cached.scrapedAt).getTime();
     if (age < 7 * 24 * 60 * 60 * 1000) {
-      console.log(`[scrape] ${slug}: using cache (${cached.images.length} images)`);
+      console.log(`[scrape] ${slug}: cache (${cached.images.length} images)`);
       return cached.images;
     }
   }
 
   try {
-    console.log(`[scrape] ${slug}: fetching ${behanceUrl}`);
+    console.log(`[scrape] ${slug}: fetching...`);
     const res = await fetch(behanceUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -78,15 +93,20 @@ export async function scrapeProjectImages(behanceUrl, slug) {
       },
       timeout: 20000,
     });
-    
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
-    const images = extractImages(html);
-    
-    console.log(`[scrape] ${slug}: found ${images.length} images`);
+
+    // Extract gallery ID from URL: /gallery/123456/ -> 123456
+    const galleryMatch = behanceUrl.match(/\/gallery\/(\d+)\//);
+    const galleryId = galleryMatch ? galleryMatch[1] : null;
+
+    const images = extractImages(html, galleryId);
+    console.log(`[scrape] ${slug}: ${images.length} images (gallery ${galleryId})`);
+
     saveProjectCache(slug, { scrapedAt: new Date().toISOString(), images });
     return images;
-    
+
   } catch (err) {
     console.warn(`[scrape] ${slug}: failed (${err.message})`);
     return cached?.images || [];

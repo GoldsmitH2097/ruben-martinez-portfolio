@@ -224,3 +224,55 @@ Deploy: push to main → GitHub Actions deploys automatically (~30 seconds).
 - **Manual projects inlined** — Astro bundles scripts into dist/.prerender/ at build time; external JSON files don't get copied there; inline const is the reliable solution
 - **No Behance links on site** — Behance is purely a database/upload UI; all presentation is on ruben-martinez.com
 - **Static scraping** — Behance project images scraped at build time, cached 7 days, filtered by gallery ID to avoid sidebar pollution
+
+---
+
+## Creative positioning (critical context)
+
+**The goal:** When someone lands on ruben-martinez.com, they should think: "This person knows their shit, can do incredible things with many tools — but more than that, I love the way he thinks. I love his taste." Rick Rubin energy. You hire him for his taste and thinking, not just execution.
+
+**The audience:** People with cool, well-paying projects. Not routine work. Not job hunting. Selective inbound.
+
+**Content status:**
+- Most current projects on site are from 2013–2016 and are outdated. Urgent refresh needed.
+- Projects coming: Logitech (possibly live), New Yorker AI video (with colleague), Hanuta AI characters, personal projects (Pulso del Núcleo, AI-rebuilt thesis), more AI generation work
+- Shuttlerock work: significant output but much is under NDA. Strategy: show craft without client name where needed.
+- Old 3D renders and early branding work: keep for range, but deprioritise visually
+
+**On assets:** Always download and host. Social posts die. We control the archive.
+
+**Visual ambition:** Subtle and refined — not bold, clunky, or heavy. The animated filter buttons (CodePen tickbox/checkbox style animations) are exactly the right energy. Every animation should feel like it belongs, not like it's showing off.
+
+**What's wrong with the current layout:**
+- Hero top doesn't align with the grid below — feels messy
+- Too static and generic, needs more dynamism / sense of life
+- Tags missing on several manual/older projects (need to audit tags.json)
+- Page feels like it's holding its breath — should feel alive
+
+**Tag audit needed:** Several older manual projects are missing tags entirely. Need to go through manual-projects.json and assign tags to all 13 projects.
+
+---
+
+## Creative positioning (critical context)
+
+**The goal:** When someone lands on ruben-martinez.com, they should think: "This person knows their shit, can do incredible things with many tools — but more than that, I love the way he thinks. I love his taste." Rick Rubin energy. You hire him for his taste and thinking, not just execution.
+
+**The audience:** People with cool, well-paying projects. Not routine work. Not job hunting. Selective inbound.
+
+**Content status:**
+- Most current projects on site are from 2013–2016 and are outdated. Urgent refresh needed.
+- Projects coming: Logitech (possibly live), New Yorker AI video (with colleague), Hanuta AI characters, personal projects (Pulso del Núcleo, AI-rebuilt thesis), more AI generation work
+- Shuttlerock work: significant output but much is under NDA. Strategy: show craft without client name where needed.
+- Old 3D renders and early branding work: keep for range, but deprioritise visually
+
+**On assets:** Always download and host. Social posts die. We control the archive.
+
+**Visual ambition:** Subtle and refined — not bold, clunky, or heavy. The animated filter buttons (CodePen tickbox/checkbox style animations) are exactly the right energy. Every animation should feel like it belongs, not like it's showing off.
+
+**What's currently wrong:**
+- Hero top doesn't align with the grid below — feels messy
+- Too static and generic, lacks dynamism
+- Tags missing on several manual/older projects
+- Page feels like it's holding its breath — should feel alive
+
+**Tag audit needed:** Several older manual projects have no tags. Audit src/data/tags.json and assign tags to all projects.

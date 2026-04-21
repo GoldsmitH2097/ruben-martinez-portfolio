@@ -498,3 +498,57 @@ body::before {
 .tag--ai            { border-color: rgba(80,220,160,0.25); color: rgba(80,220,160,0.7); }
 .tag--3d            { border-color: rgba(255,80,120,0.25); color: rgba(255,80,120,0.7); }
 .tag--photography   { border-color: rgba(200,200,200,0.25); color: rgba(200,200,200,0.7); }
+
+/* ── Hero name label ───────────────────────────────────────── */
+.hero-name-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+/* ── Nav available label ───────────────────────────────────── */
+.nav-available {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border: 1px solid rgba(76,186,110,0.3);
+  padding: 0.3rem 0.75rem;
+  transition: color .2s, border-color .2s;
+}
+.nav-available .dot { flex-shrink: 0; }
+.nav-available:hover { color: #4cba6e; border-color: rgba(76,186,110,0.6); }
+.nav-available::after { display: none; }
+
+/* ── Tag filter bar ────────────────────────────────────────── */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.filter-btn {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: none;
+  cursor: pointer;
+  transition: color .2s, border-color .2s, background .2s;
+}
+.filter-btn:hover { color: var(--text); border-color: var(--border-h); }
+.filter-btn.active { color: var(--bg); background: var(--text); border-color: var(--text); }
+
+/* Hide filtered cards */
+.project-card.hidden { display: none; }

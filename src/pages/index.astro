@@ -14,8 +14,11 @@ const projects = data.projects;
   <nav class="nav">
     <span class="nav-logo">RM</span>
     <div class="nav-links">
-      <a href="#work">{t('nav.work')}</a>
-      <a href="mailto:rubenmartinezlopez&#64;gmail.com">{t('nav.contact')}</a>
+      <a href="#work">Work</a>
+      <a href="#contact" class="nav-available">
+        <span class="dot"></span>
+        Available for awesome projects
+      </a>
       <a href="/es/" class="nav-lang">ES</a>
     </div>
   </nav>
@@ -24,10 +27,7 @@ const projects = data.projects;
   <section class="hero">
     <!-- Left column: name + tagline -->
     <div class="hero-left">
-      <div class="hero-eyebrow">
-        <span class="dot"></span>
-        <span>Available for projects</span>
-      </div>
+      <p class="hero-name-label">Rubén Martínez</p>
       <h1 class="hero-name">
         Jack of all<br />trades,<br /><em>master of AI.</em>
       </h1>
@@ -50,9 +50,19 @@ const projects = data.projects;
     </div>
 
     {projects.length > 0 ? (
-      <div class="projects-grid">
+      <div class="filter-bar" id="filter-bar">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="art-direction">Art Direction</button>
+      <button class="filter-btn" data-filter="branding">Branding</button>
+      <button class="filter-btn" data-filter="motion">Motion</button>
+      <button class="filter-btn" data-filter="social-media">Social Media</button>
+      <button class="filter-btn" data-filter="ai">AI</button>
+      <button class="filter-btn" data-filter="3d">3D</button>
+      <button class="filter-btn" data-filter="photography">Photography</button>
+    </div>
+    <div class="projects-grid" id="projects-grid">
         {projects.map((project, i) => (
-          <article class="project-card" style={`--i:${i}`}>
+          <article class="project-card" style={`--i:${i}`} data-tags={project.tags ? project.tags.join(',') : ''}>
             <a href={project.link} target="_blank" rel="noopener" class="card-link">
               <div class="card-media">
                 {project.thumbnail ? (
@@ -111,4 +121,25 @@ const projects = data.projects;
       <p class="footer-copy">© {new Date().getFullYear()} Rubén Martínez · {t('footer.built')}</p>
     </div>
   </footer>
+<script>
+  const filterBar = document.getElementById('filter-bar');
+  const grid = document.getElementById('projects-grid');
+  if (filterBar && grid) {
+    filterBar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      const filter = btn.dataset.filter;
+      filterBar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      grid.querySelectorAll('.project-card').forEach(card => {
+        if (filter === 'all') {
+          card.classList.remove('hidden');
+        } else {
+          const tags = card.dataset.tags ? card.dataset.tags.split(',') : [];
+          card.classList.toggle('hidden', !tags.includes(filter));
+        }
+      });
+    });
+  }
+</script>
 </Base>

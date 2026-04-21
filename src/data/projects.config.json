@@ -67,6 +67,71 @@
       "visible": true,
       "bgColor": "#0d0800",
       "accentColor": "#e8a447"
+    },
+    "belvie-chocolate-packaging": {
+      "visible": true,
+      "bgColor": "#1a0800",
+      "accentColor": "#c8763c"
+    },
+    "the-common-room-project-branding": {
+      "visible": true,
+      "bgColor": "#0a0a0a",
+      "accentColor": "#e8c547"
+    },
+    "car-renders-3d-rendering": {
+      "visible": true,
+      "bgColor": "#000a1a",
+      "accentColor": "#4778e8"
+    },
+    "intel-3d-modeling-rendering": {
+      "visible": true,
+      "bgColor": "#00050d",
+      "accentColor": "#0068ff"
+    },
+    "la-virgen-branding-rendering": {
+      "visible": true,
+      "bgColor": "#1a0000",
+      "accentColor": "#e84747"
+    },
+    "mini-cooper-s-08-3d-modeling": {
+      "visible": true,
+      "bgColor": "#0a0000",
+      "accentColor": "#c8c8c8"
+    },
+    "ecorche-sculpture": {
+      "visible": true,
+      "bgColor": "#0d0800",
+      "accentColor": "#c8a87a"
+    },
+    "full-metal-quartet-3d-modeling": {
+      "visible": true,
+      "bgColor": "#0a0a0a",
+      "accentColor": "#8888aa"
+    },
+    "girados-branding": {
+      "visible": true,
+      "bgColor": "#0a0a0a",
+      "accentColor": "#e8c547"
+    },
+    "sinhtolina-branding-photography": {
+      "visible": true,
+      "bgColor": "#001a08",
+      "accentColor": "#47e88a"
+    },
+    "girl-by-the-pool-3d-rendering": {
+      "visible": true,
+      "bgColor": "#001a1a",
+      "accentColor": "#47e8e8"
+    },
+    "kiwi-advertising-animation": {
+      "visible": true,
+      "bgColor": "#0a1400",
+      "accentColor": "#78c832"
+    },
+    "dental-floss-advertising-animation": {
+      "visible": true,
+      "bgColor": "#001410",
+      "accentColor": "#47c8a8"
     }
   }
 }

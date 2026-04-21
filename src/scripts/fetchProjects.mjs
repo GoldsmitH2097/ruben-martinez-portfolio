@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import { XMLParser } from 'fast-xml-parser';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -48,6 +49,11 @@ function saveCache(data) {
   writeFileSync(CACHE_PATH, JSON.stringify(data, null, 2));
 }
 
+// Known RSS encoding bugs — correct them at source
+const TITLE_CORRECTIONS = {
+  'Quán ?t ?t Branding & Marketing': 'Quán Ụt Ụt Branding & Marketing',
+};
+
 function decode(val) {
   const str = typeof val === 'object' ? (val?.__cdata || '') : String(val || '');
   return str.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#38;/g, '&');
@@ -74,7 +80,7 @@ function parseXML(xml) {
   const raw = Array.isArray(channel.item) ? channel.item : [channel.item];
   return raw.filter(Boolean).map((item, i) => ({
     id: i,
-    title: str(item.title, `Project ${i + 1}`).trim(),
+    title: TITLE_CORRECTIONS[str(item.title, `Project ${i + 1}`).trim()] || str(item.title, `Project ${i + 1}`).trim(),
     link: str(item.link?.__cdata ? item.link : (item.link || item.guid), '#').trim(),
     pubDate: item.pubDate || null,
     description: str(item.description).replace(/<[^>]+>/g, '').trim(),
@@ -86,7 +92,7 @@ function parseRss2json(data) {
   if (data.status !== 'ok') throw new Error('rss2json error: ' + data.status);
   return data.items.map((item, i) => ({
     id: i,
-    title: str(item.title, `Project ${i + 1}`).trim(),
+    title: TITLE_CORRECTIONS[str(item.title, `Project ${i + 1}`).trim()] || str(item.title, `Project ${i + 1}`).trim(),
     link: String(item.link || item.guid || '#').trim(),
     pubDate: item.pubDate || null,
     description: String(item.description || '').replace(/<[^>]+>/g, '').trim(),
@@ -167,21 +173,18 @@ export async function fetchProjectsWithTags() {
 export async function fetchAllProjects() {
   const { projects: rssProjects, fetchedAt } = await fetchProjectsWithTags();
   
-  let manualProjects = [];
-  try {
-    const manualPath = join(__dirname, '../../src/data/manual-projects.json');
-    const manual = JSON.parse(readFileSync(manualPath, 'utf8'));
-    manualProjects = (manual.projects || []).map((p, i) => ({
-      id: 1000 + i,
-      title: p.title,
-      link: p.link,
-      pubDate: p.pubDate || null,
-      description: p.description || '',
-      thumbnail: p.thumbnail || null,
-      tags: p.tags || [],
-      manual: true,
-    }));
-  } catch (_) {}
+  // Manual projects — statically inlined so they survive Astro's build bundling
+  const MANUAL_DATA = [{"url": "https://www.behance.net/gallery/111765415/Belvie-Chocolate-Packaging", "title": "Belvie Chocolate Packaging", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/1400/a21e40111765415.6008160848a9a.jpeg", "tags": ["branding"]}, {"url": "https://www.behance.net/gallery/25498959/The-Common-Room-Project-Branding", "title": "The Common Room Project Branding", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/hd/b0558625498959.563463fa71fd6.png", "tags": ["branding"]}, {"url": "https://www.behance.net/gallery/25497429/Car-Renders-3D-Rendering", "title": "Car Renders — 3D Rendering", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/1400/ace99725497429.563463a08edc3.jpg", "tags": ["3d"]}, {"url": "https://www.behance.net/gallery/25496835/Intel-3D-Modeling-Rendering", "title": "Intel — 3D Modeling & Rendering", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/1400/78d8ab25496835.6008387be4092.jpg", "tags": ["3d"]}, {"url": "https://www.behance.net/gallery/25496083/La-Virgen-Branding-Rendering", "title": "La Virgen — Branding & Rendering", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/1400/fd238125496083.56346342d2a23.jpg", "tags": ["branding", "3d"]}, {"url": "https://www.behance.net/gallery/22802917/Mini-Cooper-S-08-3D-Modeling-Rendering", "title": "Mini Cooper S '08 — 3D Modeling", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/hd/f4a40522802917.56318a25cd900.jpg", "tags": ["3d"]}, {"url": "https://www.behance.net/gallery/22802363/Ecorch-Sculpture", "title": "Écorché Sculpture", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/hd/3f17a522802363.56318a058fc08.jpg", "tags": ["3d"]}, {"url": "https://www.behance.net/gallery/22801817/Full-Metal-Quartet-3D-Modeling", "title": "Full Metal Quartet — 3D Modeling", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/hd/a0aa6322801817.563189e831d37.jpg", "tags": ["3d"]}, {"url": "https://www.behance.net/gallery/22801439/Girados-Branding", "title": "Girados Branding", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/hd/e06d0822801439.563189baaafba.jpg", "tags": ["branding"]}, {"url": "https://www.behance.net/gallery/22800737/Sinhtolina-Branding-Photography", "title": "Sinhtolina — Branding & Photography", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/hd/837ab522800737.600851831a259.jpg", "tags": ["branding", "photography"]}, {"url": "https://www.behance.net/gallery/454872/Girl-by-the-Pool-3D-Modeling-Rendering", "title": "Girl by the Pool — 3D Rendering", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/hd/3f17a522802363.56318a058fc08.jpg", "tags": ["3d"]}, {"url": "https://www.behance.net/gallery/397713/Kiwi-Advertising-Animation", "title": "Kiwi — Advertising & Animation", "thumbnail": "https://mir-s3-cdn-cf.behance.net/projects/max_808/4370be397713.Y3JvcCwxMDY2LDgzNCwzNTksMjM1.png", "tags": ["art-direction", "motion"]}, {"url": "https://www.behance.net/gallery/403604/Dental-Floss-Advertising-Animation", "title": "Dental Floss — Advertising & Animation", "thumbnail": "https://mir-s3-cdn-cf.behance.net/project_modules/hd/7c797d78036323.56015b752322f.jpg", "tags": ["art-direction", "motion"]}];
+  let manualProjects = MANUAL_DATA.map((p, i) => ({
+    id: 1000 + i,
+    title: p.title,
+    link: p.url || p.link,
+    pubDate: p.pubDate || null,
+    description: p.description || '',
+    thumbnail: p.thumbnail || null,
+    tags: p.tags || [],
+    manual: true,
+  }));
 
   // Merge — skip manual projects that already exist in RSS (by title)
   const rssTitles = new Set(rssProjects.map(p => p.title.toLowerCase()));

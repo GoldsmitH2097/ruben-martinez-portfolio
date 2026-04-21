@@ -19,23 +19,47 @@ const { title = 'Rubén Martínez', lang = 'en' } = Astro.props;
     <link rel="alternate" hreflang="es" href="https://ruben-martinez.com/es/" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300&display=swap" rel="stylesheet" />
     <title>{title}</title>
   </head>
   <body>
     <slot />
-    <script>
-      // Cursor
-      const cursor = document.createElement('div');
-      cursor.className = 'cursor';
-      document.body.appendChild(cursor);
-      document.addEventListener('mousemove', e => {
-        cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
-      });
-      document.querySelectorAll('a, button').forEach(el => {
-        el.addEventListener('mouseenter', () => cursor.classList.add('cursor--hover'));
-        el.addEventListener('mouseleave', () => cursor.classList.remove('cursor--hover'));
-      });
-    </script>
-  </body>
+    
+  <script>
+  // ── Custom cursor: dot + trailing ring ────────────────────
+  if (window.matchMedia('(pointer: fine)').matches) {
+    document.body.style.cursor = 'none';
+
+    const dot  = Object.assign(document.createElement('div'), { className: 'c-dot' });
+    const ring = Object.assign(document.createElement('div'), { className: 'c-ring' });
+    document.body.append(dot, ring);
+
+    let mx = -100, my = -100, rx = -100, ry = -100;
+    let hovering = false;
+
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+    document.querySelectorAll('a, button, .project-card, .filter-btn').forEach(el => {
+      el.style.cursor = 'none';
+      el.addEventListener('mouseenter', () => hovering = true);
+      el.addEventListener('mouseleave', () => hovering = false);
+    });
+
+    let raf;
+    function loop() {
+      // dot snaps instantly
+      dot.style.transform = `translate(${mx}px,${my}px)`;
+
+      // ring lags behind
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      ring.style.transform = `translate(${rx}px,${ry}px) scale(${hovering ? 1.8 : 1})`;
+      ring.style.opacity = hovering ? '0.5' : '0.25';
+
+      raf = requestAnimationFrame(loop);
+    }
+    loop();
+  }
+</script>
+</body>
 </html>

@@ -159,3 +159,35 @@ export async function fetchProjectsWithTags() {
 
   return { fetchedAt, projects: tagged };
 }
+
+/**
+ * Merge manual projects (older Behance work not in RSS) with RSS projects.
+ * Manual projects take lower priority — RSS projects always win on title match.
+ */
+export async function fetchAllProjects() {
+  const { projects: rssProjects, fetchedAt } = await fetchProjectsWithTags();
+  
+  let manualProjects = [];
+  try {
+    const manualPath = join(__dirname, '../../src/data/manual-projects.json');
+    const manual = JSON.parse(readFileSync(manualPath, 'utf8'));
+    manualProjects = (manual.projects || []).map((p, i) => ({
+      id: 1000 + i,
+      title: p.title,
+      link: p.link,
+      pubDate: p.pubDate || null,
+      description: p.description || '',
+      thumbnail: p.thumbnail || null,
+      tags: p.tags || [],
+      manual: true,
+    }));
+  } catch (_) {}
+
+  // Merge — skip manual projects that already exist in RSS (by title)
+  const rssTitles = new Set(rssProjects.map(p => p.title.toLowerCase()));
+  const newManual = manualProjects.filter(p => !rssTitles.has(p.title.toLowerCase()));
+  
+  const all = [...rssProjects, ...newManual];
+  console.log(`[projects] ${rssProjects.length} from RSS + ${newManual.length} manual = ${all.length} total`);
+  return { fetchedAt, projects: all };
+}

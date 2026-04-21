@@ -1,7 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
-import { fetchProjectsWithTags as fetchProjects } from '../scripts/fetchProjects.mjs';
+import { fetchAllProjects as fetchProjects } from '../scripts/fetchProjects.mjs';
 import { slugify } from '../scripts/slugify.mjs';
+import photoAlbums from '../data/photo-albums.json';
 import { useTranslations } from '../i18n/translations';
 import '../styles/global.css';
 
@@ -60,6 +61,7 @@ const projects = data.projects;
       <button class="filter-btn" data-filter="ai">AI</button>
       <button class="filter-btn" data-filter="3d">3D</button>
       <button class="filter-btn" data-filter="photography">Photography</button>
+      </div>
     </div>
     <div class="projects-grid" id="projects-grid">
         {projects.map((project, i) => (
@@ -105,6 +107,33 @@ const projects = data.projects;
   </section>
 
   <!-- Footer / Contact -->
+    <!-- Dark Room -->
+  <section class="darkroom" id="darkroom">
+    <div class="section-header" style="margin-bottom: 2rem;">
+      <h2 class="section-title">Dark Room</h2>
+      <span class="section-sub">Personal photo galleries</span>
+    </div>
+    <div class="albums-grid">
+      {photoAlbums.albums.filter(a => a.visible).map(album => (
+        <a href={`/photos/${album.slug}/`} class="album-card">
+          <div class="album-cover">
+            {album.cover
+              ? <img src={album.cover} alt={album.title} loading="lazy" />
+              : <div class="album-placeholder"><span>—</span></div>
+            }
+          </div>
+          <div class="album-info">
+            <h3 class="album-title">{album.title}</h3>
+            <p class="album-year">{album.year}</p>
+          </div>
+        </a>
+      ))}
+      {photoAlbums.albums.filter(a => a.visible).length === 0 && (
+        <p class="coming-soon">Developing. Come back soon.</p>
+      )}
+    </div>
+  </section>
+
   <footer class="footer">
     <div class="footer-left">
       <p>{t('contact.title')}</p>

@@ -1,9 +1,11 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { fetchProjectsWithTags } from '../../scripts/fetchProjects.mjs';
+import { fetchAllProjects as fetchProjectsWithTags } from '../../scripts/fetchProjects.mjs';
 import { slugify } from '../../scripts/slugify.mjs';
 import '../../styles/global.css';
 import config from '../../data/projects.config.json';
+import { scrapeProjectImages } from '../../scripts/scrapeProject.mjs';
+import { slugify } from '../../scripts/slugify.mjs';
 
 export async function getStaticPaths() {
   const { projects } = await fetchProjectsWithTags();
@@ -22,6 +24,7 @@ export async function getStaticPaths() {
 
 const { project } = Astro.props;
 const slug = slugify(project.title);
+const images = await scrapeProjectImages(project.link, slug);
 const cfg = config.projects[slug] || {};
 const bgColor = cfg.bgColor || config.defaults.bgColor;
 const accentColor = cfg.accentColor || config.defaults.accentColor;
@@ -34,7 +37,26 @@ const description = cfg.description || project.description || '';
     .project-accent { color: var(--accentColor); }
     .back-link:hover { color: var(--accentColor); }
     .project-hero { background: var(--bgColor); }
-    .project-thumb { border-color: rgba(255,255,255,0.06); }
+    .project-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 3rem;
+  }
+
+  .project-img {
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .project-img img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .project-thumb { border-color: rgba(255,255,255,0.06); }
     .behance-link {
       border-color: var(--accentColor);
       color: var(--accentColor);
@@ -69,11 +91,20 @@ const description = cfg.description || project.description || '';
       )}
     </header>
 
-    {project.thumbnail && (
+    {images.length > 0 ? (
+      <div class="project-gallery">
+        {images.map((src, i) => (
+          <div class="project-img">
+            <img src={src} alt={`${project.title} — image ${i + 1}`}
+              loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
+          </div>
+        ))}
+      </div>
+    ) : project.thumbnail ? (
       <div class="project-thumb">
         <img src={project.thumbnail} alt={project.title} loading="eager" decoding="async" />
       </div>
-    )}
+    ) : null}
 
     <footer class="project-footer">
       <a href={project.link} target="_blank" rel="noopener" class="behance-link">
@@ -126,6 +157,25 @@ const description = cfg.description || project.description || '';
     font-size: 0.65rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
+  }
+
+  .project-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 3rem;
+  }
+
+  .project-img {
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .project-img img {
+    width: 100%;
+    height: auto;
+    display: block;
   }
 
   .project-thumb {

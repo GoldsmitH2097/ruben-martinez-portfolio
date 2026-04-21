@@ -1,0 +1,28 @@
+{
+  "albums": [
+    {
+      "slug": "vietnam-streets",
+      "title": "Vietnam Streets",
+      "year": "2018–2023",
+      "description": "Five years of wandering. Hanoi alleys, Saigon heat, the kind of light you can't plan for.",
+      "cover": null,
+      "visible": false
+    },
+    {
+      "slug": "barcelona-life",
+      "title": "Barcelona Life",
+      "year": "2023–",
+      "description": "Home. The good light is in the morning, when no one else is up.",
+      "cover": null,
+      "visible": false
+    },
+    {
+      "slug": "portraits",
+      "title": "Portraits",
+      "year": "Various",
+      "description": "People I've met, people I know, people who let me.",
+      "cover": null,
+      "visible": false
+    }
+  ]
+}

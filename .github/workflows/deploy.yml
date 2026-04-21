@@ -51,4 +51,5 @@ jobs:
           publish_branch: gh-pages
           force_orphan: true
           enable_jekyll: false
+          cname: ruben-martinez.com
           commit_message: "chore: auto-deploy [skip ci]"

@@ -1,0 +1,72 @@
+{
+  "defaults": {
+    "visible": true,
+    "bgColor": "#0a0a0a",
+    "accentColor": "#e8c547"
+  },
+  "projects": {
+    "shuttlerock-2023-north-america-reel": {
+      "visible": true,
+      "bgColor": "#0d0a00",
+      "accentColor": "#e8c547",
+      "description": "Creative direction and art direction for Shuttlerock's 2023 North America showreel — showcasing campaigns across automotive, FMCG, and lifestyle brands."
+    },
+    "shuttlerock-2023-emea-reel": {
+      "visible": true,
+      "bgColor": "#00080d",
+      "accentColor": "#47b4e8",
+      "description": "Creative direction for Shuttlerock's 2023 EMEA showreel — a curated collection of campaigns produced for the European, Middle Eastern, and African markets."
+    },
+    "shuttlerock-2023-apac-reel": {
+      "visible": true,
+      "bgColor": "#0a000d",
+      "accentColor": "#b447e8",
+      "description": "Creative direction for Shuttlerock's 2023 APAC showreel — campaigns spanning Southeast Asia, Japan, Korea, and Australia."
+    },
+    "sprite-vietnam": {
+      "visible": true,
+      "bgColor": "#001a00",
+      "accentColor": "#00e847"
+    },
+    "coca-cola-vietnam-ad-campaigns": {
+      "visible": true,
+      "bgColor": "#1a0000",
+      "accentColor": "#e84747"
+    },
+    "fv-hospital-ad-campaign": {
+      "visible": true,
+      "bgColor": "#00101a",
+      "accentColor": "#47c8e8"
+    },
+    "vinhomes-central-park-branding-design": {
+      "visible": true,
+      "bgColor": "#000d1a",
+      "accentColor": "#4778e8"
+    },
+    "qu-n-t-branding-marketing": {
+      "visible": true,
+      "bgColor": "#0d0500",
+      "accentColor": "#e87847"
+    },
+    "broma-branding-marketing": {
+      "visible": true,
+      "bgColor": "#0a0a0a",
+      "accentColor": "#e8c547"
+    },
+    "mia-resorts-branding-marketing": {
+      "visible": true,
+      "bgColor": "#001a10",
+      "accentColor": "#47e8a0"
+    },
+    "vight-bespoke-lighting-rebrand": {
+      "visible": true,
+      "bgColor": "#0d0d00",
+      "accentColor": "#e8e047"
+    },
+    "te-te-craft-beer-branding-marketing": {
+      "visible": true,
+      "bgColor": "#0d0800",
+      "accentColor": "#e8a447"
+    }
+  }
+}

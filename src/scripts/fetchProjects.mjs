@@ -144,7 +144,7 @@ export async function fetchProjects() {
 export async function fetchProjectsWithTags() {
   const { projects, fetchedAt } = await fetchProjects();
   
-  const tagsPath = join(__dirname, '../data/tags.json');
+  const tagsPath = join(__dirname, '../../src/data/tags.json');
   let tagMap = {};
   try {
     tagMap = JSON.parse(readFileSync(tagsPath, 'utf8'));

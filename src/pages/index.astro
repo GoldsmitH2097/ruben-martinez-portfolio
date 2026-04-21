@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { fetchProjectsWithTags as fetchProjects } from '../scripts/fetchProjects.mjs';
+import { slugify } from '../scripts/slugify.mjs';
 import { useTranslations } from '../i18n/translations';
 import '../styles/global.css';
 
@@ -63,7 +64,7 @@ const projects = data.projects;
     <div class="projects-grid" id="projects-grid">
         {projects.map((project, i) => (
           <article class="project-card" style={`--i:${i}`} data-tags={project.tags ? project.tags.join(',') : ''}>
-            <a href={project.link} target="_blank" rel="noopener" class="card-link">
+            <a href={`/work/${slugify(project.title)}/`} class="card-link">
               <div class="card-media">
                 {project.thumbnail ? (
                   <img src={project.thumbnail} alt={project.title} loading="lazy" decoding="async" />

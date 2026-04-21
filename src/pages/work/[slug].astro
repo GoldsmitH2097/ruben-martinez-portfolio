@@ -1,0 +1,168 @@
+---
+import Base from '../../layouts/Base.astro';
+import { fetchProjectsWithTags } from '../../scripts/fetchProjects.mjs';
+import { slugify } from '../../scripts/slugify.mjs';
+import '../../styles/global.css';
+import config from '../../data/projects.config.json';
+
+export async function getStaticPaths() {
+  const { projects } = await fetchProjectsWithTags();
+  return projects
+    .filter(p => {
+      const slug = slugify(p.title);
+      const cfg = config.projects[slug];
+      const visible = cfg?.visible ?? config.defaults.visible;
+      return visible;
+    })
+    .map(p => ({
+      params: { slug: slugify(p.title) },
+      props: { project: p },
+    }));
+}
+
+const { project } = Astro.props;
+const slug = slugify(project.title);
+const cfg = config.projects[slug] || {};
+const bgColor = cfg.bgColor || config.defaults.bgColor;
+const accentColor = cfg.accentColor || config.defaults.accentColor;
+const description = cfg.description || project.description || '';
+---
+
+<Base title={`${project.title} — Rubén Martínez`} lang="en">
+  <style define:vars={{ bgColor, accentColor }}>
+    body { background: var(--bgColor); }
+    .project-accent { color: var(--accentColor); }
+    .back-link:hover { color: var(--accentColor); }
+    .project-hero { background: var(--bgColor); }
+    .project-thumb { border-color: rgba(255,255,255,0.06); }
+    .behance-link {
+      border-color: var(--accentColor);
+      color: var(--accentColor);
+    }
+    .behance-link:hover {
+      background: var(--accentColor);
+      color: #0a0a0a;
+    }
+  </style>
+
+  <nav class="nav">
+    <a href="/" class="nav-logo">RM</a>
+    <div class="nav-links">
+      <a href="/#work" class="back-link">← Back to Work</a>
+    </div>
+  </nav>
+
+  <article class="project-hero">
+
+    <header class="project-header">
+      <div class="project-meta-top">
+        {project.tags && project.tags.map((tag: string) => (
+          <span class="tag project-accent" style={`border-color: ${accentColor}33`}>{tag.replace(/-/g, ' ')}</span>
+        ))}
+      </div>
+      <h1 class="project-title">{project.title}</h1>
+      {description && <p class="project-description">{description}</p>}
+      {project.pubDate && (
+        <p class="project-date project-accent">
+          {new Date(typeof project.pubDate === 'object' ? project.pubDate.__cdata || '' : project.pubDate).toLocaleDateString('en-GB', { year: 'numeric', month: 'long' })}
+        </p>
+      )}
+    </header>
+
+    {project.thumbnail && (
+      <div class="project-thumb">
+        <img src={project.thumbnail} alt={project.title} loading="eager" decoding="async" />
+      </div>
+    )}
+
+    <footer class="project-footer">
+      <a href={project.link} target="_blank" rel="noopener" class="behance-link">
+        View full project on Behance ↗
+      </a>
+    </footer>
+
+  </article>
+</Base>
+
+<style>
+  .project-hero {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 8rem var(--gutter) 6rem;
+  }
+
+  .project-header {
+    margin-bottom: 3rem;
+  }
+
+  .project-meta-top {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+
+  .project-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 6vw, 6rem);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+
+  .project-description {
+    max-width: 60ch;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .project-date {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .project-thumb {
+    width: 100%;
+    border: 1px solid;
+    overflow: hidden;
+    margin-bottom: 3rem;
+  }
+
+  .project-thumb img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .project-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .behance-link {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border: 1px solid;
+    padding: 0.75rem 1.5rem;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .back-link {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    transition: color 0.2s;
+  }
+</style>

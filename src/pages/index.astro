@@ -14,9 +14,7 @@ const projects = data.projects;
 <Base title="Rubén Martínez — Art Director" lang="en">
   <!-- Nav -->
   <nav class="nav">
-    <span class="nav-logo">RM</span>
     <div class="nav-links">
-      <a href="#work">Work</a>
       <a href="#contact" class="nav-available">
         <span class="dot"></span>
         Available for awesome projects
@@ -33,9 +31,7 @@ const projects = data.projects;
       <h1 class="hero-name">
         Jack of all trades,<br /><em>master of AI.</em>
       </h1>
-      <div class="hero-meta">
-        <span class="hero-scroll">Scroll</span>
-      </div>
+
     </div>
     <!-- Right column: role + bio -->
     <div class="hero-right">
@@ -84,7 +80,7 @@ const projects = data.projects;
                 {project.tags && project.tags.length > 0 && (
                   <div class="card-tags">
                     {project.tags.map((tag) => (
-                      <span class={`tag tag--${tag}`}>{tag.replace(/-/g, ' ')}</span>
+                      <span class={`tag tag--${tag}`} title={tag.replace(/-/g, ' ')}>{({'art-direction':'AD','branding':'BR','motion':'MO','social-media':'SM','ai':'AI','3d':'3D','photography':'PH'})[tag] || tag.toUpperCase()}</span>
                     ))}
                   </div>
                 )}

@@ -92,5 +92,20 @@ const { title = 'Rubén Martínez', lang = 'en' } = Astro.props;
     loop();
   }
 </script>
+<script>
+  // Scroll-triggered card reveals
+  const cards = document.querySelectorAll('.project-card');
+  if (cards.length) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    cards.forEach(c => io.observe(c));
+  }
+</script>
 </body>
 </html>

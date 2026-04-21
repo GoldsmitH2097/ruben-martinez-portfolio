@@ -706,3 +706,130 @@ body::before {
 @media (max-width: 640px) {
   .albums-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Animated gradient accent ──────────────────────────────── */
+@property --grad-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes grad-spin {
+  to { --grad-angle: 360deg; }
+}
+
+@keyframes grad-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Gradient on the hero name (the em italic part) */
+.hero-name em {
+  background: linear-gradient(
+    135deg,
+    #e8c547 0%,
+    #ff8c42 25%,
+    #e8c547 50%,
+    #ffe082 75%,
+    #e8c547 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: grad-shift 4s ease infinite;
+}
+
+/* Animated dot in nav */
+.dot {
+  animation: pulse-dot 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.8); }
+}
+
+/* ── Scroll-triggered card reveals ────────────────────────── */
+.project-card {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.project-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger delay via CSS custom property */
+.project-card { transition-delay: calc(var(--i, 0) * 60ms); }
+
+/* ── Project nav back button ──────────────────────────────── */
+.project-nav {
+  justify-content: space-between;
+}
+
+.back-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color 0.2s, gap 0.2s;
+}
+.back-link svg { transition: transform 0.2s; }
+.back-link:hover { color: var(--text); gap: 0.75rem; }
+.back-link:hover svg { transform: translateX(-3px); }
+.back-link::after { display: none; }
+
+/* ── Animated filter buttons ──────────────────────────────── */
+.filter-btn {
+  position: relative;
+  overflow: hidden;
+  transition: color .25s, border-color .25s;
+}
+
+.filter-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s cubic-bezier(.16,1,.3,1);
+  z-index: -1;
+}
+.filter-btn[data-filter="art-direction"]::before { background: rgba(232,197,71,1); }
+.filter-btn[data-filter="branding"]::before      { background: rgba(180,120,255,1); }
+.filter-btn[data-filter="motion"]::before        { background: rgba(80,180,255,1); }
+.filter-btn[data-filter="social-media"]::before  { background: rgba(255,140,80,1); }
+.filter-btn[data-filter="ai"]::before            { background: rgba(80,220,160,1); }
+.filter-btn[data-filter="3d"]::before            { background: rgba(255,80,120,1); }
+.filter-btn[data-filter="photography"]::before   { background: rgba(200,200,200,1); }
+.filter-btn[data-filter="all"]::before           { background: var(--text); }
+
+.filter-btn.active::before,
+.filter-btn:hover::before {
+  transform: scaleX(1);
+}
+
+.filter-btn.active,
+.filter-btn:hover {
+  color: #0a0a0a;
+  border-color: transparent;
+}
+
+/* Override per-colour active states since we use ::before now */
+.filter-btn[data-filter="art-direction"].active,
+.filter-btn[data-filter="branding"].active,
+.filter-btn[data-filter="motion"].active,
+.filter-btn[data-filter="social-media"].active,
+.filter-btn[data-filter="ai"].active,
+.filter-btn[data-filter="3d"].active,
+.filter-btn[data-filter="photography"].active,
+.filter-btn[data-filter="all"].active {
+  background: none;
+}

@@ -4,3 +4,7 @@ dist/
 .DS_Store
 *.log
 .env
+
+# Sanity Studio build output (deployed to sanity.studio, not the repo)
+ruben-martinez/
+.sanity/

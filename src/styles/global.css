@@ -408,23 +408,70 @@ body::before {
 }
 
 /* ── Responsive ────────────────────────────────────────────── */
+/* ── Tablet ─────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .hero { grid-template-columns: 1fr; min-height: auto; padding-top: 6rem; }
-  .hero-right { display: none; }
+  .hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding-top: 6rem;
+    gap: 2rem;
+  }
+  .hero-right { display: block; }
+  .hero-bio { max-width: 100%; }
 }
+
 @media (max-width: 900px) {
   .projects-grid { grid-template-columns: repeat(2, 1fr); }
+  .albums-grid   { grid-template-columns: repeat(2, 1fr); }
+  .section-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .filter-bar { width: 100%; }
 }
+
+/* ── Mobile ─────────────────────────────────────────────────── */
 @media (max-width: 580px) {
+  /* Nav */
+  .nav {
+    padding: 1rem 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .nav-links { gap: 1rem; flex-wrap: wrap; }
+  .nav-available span:not(.dot) { display: none; }
+  .nav-available { padding: 0.3rem 0.5rem; }
+
+  /* Hero */
+  .hero {
+    padding: 5rem 1.25rem 2.5rem;
+    gap: 1.5rem;
+  }
+  .hero-name { font-size: clamp(2rem, 12vw, 3.5rem); }
+  .hero-name-label { font-size: 0.6rem; }
+  .hero-bio { font-size: 0.875rem; }
+
+  /* Grid */
   .projects-grid { grid-template-columns: 1fr; }
-  .nav { padding: 1.25rem 1.5rem; }
-  .hero { padding: 5rem 1.5rem 2.5rem; }
-  .projects { padding: 0 1.5rem 4rem; }
-  .footer { padding: 2.5rem 1.5rem; flex-direction: column; align-items: flex-start; }
+  .albums-grid   { grid-template-columns: 1fr; }
+  .projects { padding: 0 1.25rem 4rem; }
+  .darkroom { padding: 0 1.25rem 4rem; }
+
+  /* Filter bar */
+  .section-header { flex-direction: column; align-items: flex-start; }
+  .filter-bar { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 0.5rem; width: 100%; }
+  .filter-btn { white-space: nowrap; flex-shrink: 0; }
+
+  /* Footer */
+  .footer { padding: 2.5rem 1.25rem; flex-direction: column; align-items: flex-start; gap: 2rem; }
   .footer-links { align-items: flex-start; }
   .footer-copy { text-align: left; }
+  .footer-email { font-size: clamp(1.2rem, 6vw, 2rem); word-break: break-all; }
+
+  /* Project page */
+  .project-hero { padding: 6rem 1.25rem 4rem; }
+  .project-title { font-size: clamp(2rem, 10vw, 3rem); }
+
+  /* Cursor off on touch */
   body { cursor: auto; }
-  .cursor { display: none; }
+  .c-dot, .c-ring { display: none; }
 }
 
 /* ── Hero tagline + bio ────────────────────────────────────── */

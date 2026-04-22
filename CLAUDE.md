@@ -163,12 +163,25 @@ HTTPS: Enable "Enforce HTTPS" in GitHub Pages settings once cert provisions (che
 
 ---
 
+## CMS & Deploy Pipeline
+
+**Sanity Studio:** https://ruben-martinez.sanity.studio (login with Google)
+**Sanity Project ID:** 7efeaozz
+**Sanity Dataset:** production
+**Cloudflare Worker:** https://sanity-github-proxy.goldsmith2097.workers.dev
+**Worker repo:** ~/Sites/sanity-github-proxy
+
+**Publish flow:** Sanity publish → Cloudflare Worker → GitHub dispatch → GitHub Actions → site live in ~30s
+**GitHub PAT:** Stored as Cloudflare secret `GITHUB_PAT` in the worker. Never in code.
+**GitHub Actions secret:** `SANITY_DISPATCH_TOKEN` also stored (backup).
+
+---
+
 ## Pending work (priority order)
 
 ### Must do
 - [ ] Enable HTTPS in GitHub Pages (cert should be ready ~30min after DNS propagation)
-- [ ] Add missing .109 A record (done?) — verify in Bluehost DNS tab
-- [ ] Fix older projects with missing thumbnails (Rubén needs to update covers on Behance for projects from ~2013-2015)
+- [ ] Verify .109 A record in Bluehost DNS tab
 
 ### Content
 - [ ] Write descriptions for all projects in projects.config.json
